@@ -1,6 +1,7 @@
 import copy
 import os
 import time
+import re
 from functools import partial
 from typing import TYPE_CHECKING, Any, Iterable, List, Optional, Tuple, Union
 
@@ -30,6 +31,13 @@ logger = init_logger(__name__)
 
 _LOGGING_INTERVAL_SEC = 5
 
+def ends_with_pattern(s, pattern):
+    regex_pattern = re.compile(pattern + '$')
+    v=re.search(regex_pattern, s)
+    if v:
+        return len(v.group())
+    else:
+        return 0
 
 class LLMEngine:
     """An LLM engine that receives requests and generates texts.
@@ -685,11 +693,16 @@ class LLMEngine:
                     sampling_params: SamplingParams) -> None:
         """Stop the finished sequences."""
         for stop_str in sampling_params.stop:
-            if seq.output_text.endswith(stop_str):
-                if not sampling_params.include_stop_str_in_output:
-                    # Truncate the output text so that the stop string is
-                    # not included in the output.
-                    seq.output_text = seq.output_text[:-len(stop_str)]
+            stop_str_len=ends_with_pattern(seq.output_text,stop_str)
+            #if seq.output_text.endswith(stop_str):
+            #print(f"OUTPUT: \"{seq.output_text}\"")
+            #print(f"REG: \"{stop_str}\"")
+            if stop_str_len>0:
+                print(f"CHECK_STOPPED: \"{seq.output_text}\" for '{stop_str}'")
+                # if not sampling_params.include_stop_str_in_output:
+                #     # Truncate the output text so that the stop string is
+                #     # not included in the output.
+                #     seq.output_text = seq.output_text[:-stop_str_len]
                 seq.status = SequenceStatus.FINISHED_STOPPED
                 return
         if seq.get_last_token_id() in sampling_params.stop_token_ids:
