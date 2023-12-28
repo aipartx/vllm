@@ -15,6 +15,11 @@ class ErrorResponse(BaseModel):
     param: Optional[str] = None
     code: Optional[str] = None
 
+class Tokens(BaseModel):
+    tokens: int= 0
+
+class TokenCount(BaseModel):
+    results:List[Tokens] = Field(default_factory=list)
 
 class ModelPermission(BaseModel):
     id: str = Field(default_factory=lambda: f"modelperm-{random_uuid()}")
