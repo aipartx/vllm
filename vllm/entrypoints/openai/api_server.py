@@ -27,7 +27,7 @@ from vllm.entrypoints.openai.protocol import (
     ChatCompletionRequest, ChatCompletionResponse,
     ChatCompletionResponseChoice, ChatCompletionResponseStreamChoice,
     ChatCompletionStreamResponse, ChatMessage, DeltaMessage, ErrorResponse,
-    LogProbs, ModelCard, ModelList, ModelPermission, UsageInfo)
+    LogProbs, ModelCard, ModelList,Tokens, TokenCount,ModelPermission, UsageInfo)
 from vllm.logger import init_logger
 from vllm.outputs import RequestOutput
 from vllm.sampling_params import SamplingParams
@@ -215,6 +215,15 @@ def create_logprobs(
                 for i, p in step_top_logprobs.items()
             } if step_top_logprobs else None)
     return logprobs
+
+
+
+@app.post("/v1/token-count")
+async def token_count(request: CompletionRequest, raw_request: Request):
+    prompt = request.prompt
+    token_ids, _ = await check_length(request, prompt=prompt)
+    token_rt = [Tokens(tokens=len(token_ids))]
+    return TokenCount(results=token_rt)
 
 
 @app.post("/v1/chat/completions")
